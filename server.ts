@@ -135,6 +135,40 @@ app.post('/api/contact', async (req, res) => {
     }
   }
 
+  // Fallback 0: Google Apps Script Web App
+  if (!emailSent) {
+    try {
+      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxs-arJaFBZZNYjmel8aMgFmwQhKv0SBkL3Ejbd9vrKq11OmoTzIqvKrd0sZ91K0ie-/exec';
+      const qParams = new URLSearchParams({
+        name: newReq.name,
+        phone: newReq.phone,
+        email: newReq.email,
+        topic: newReq.topic,
+        message: newReq.message || ''
+      });
+
+      const gasRes = await fetch(`${GOOGLE_SCRIPT_URL}?${qParams.toString()}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newReq.name,
+          phone: newReq.phone,
+          email: newReq.email,
+          topic: newReq.topic,
+          message: newReq.message || ''
+        })
+      });
+
+      if (gasRes.ok || gasRes.status === 302 || gasRes.status === 200) {
+        emailSent = true;
+        newReq.emailSent = true;
+        console.log(`[EMAIL SUCCESS] Заявка отправлена в Google Apps Script для ${NOTIFICATION_EMAIL}`);
+      }
+    } catch (gasErr: any) {
+      console.error('[Google Script ERROR]', gasErr?.message || gasErr);
+    }
+  }
+
   // Fallback 1: Web3Forms HTTP API (Server-side from Node.js)
   if (!emailSent) {
     try {

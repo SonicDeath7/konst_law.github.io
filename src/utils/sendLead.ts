@@ -8,6 +8,9 @@ export interface LeadData {
 
 export const TARGET_EMAIL = 'sonicdeath7@yandex.ru';
 
+// Вы можете вставить сюда Web App URL от Google Apps Script, если создали его
+export const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxs-arJaFBZZNYjmel8aMgFmwQhKv0SBkL3Ejbd9vrKq11OmoTzIqvKrd0sZ91K0ie-/exec';
+
 export interface LeadResponse {
   success: boolean;
   requestId: string;
@@ -41,12 +44,13 @@ export async function sendLead(data: LeadData): Promise<LeadResponse> {
     phone,
     email: email || 'Не указан',
     topic: topic || 'Запись на консультацию',
-    message: message || 'Без текста'
+    message: message || 'Без текста',
+    timestamp: new Date().toISOString()
   };
 
   let emailSent = false;
 
-  // 1. Попытка отправки через локальный Node.js бэкенд /api/contact (Yandex SMTP)
+  // 1. Попытка отправки через локальный Node.js бэкенд /api/contact
   try {
     const res = await fetch('/api/contact', {
       method: 'POST',
@@ -65,67 +69,34 @@ export async function sendLead(data: LeadData): Promise<LeadResponse> {
     console.warn('[Lead Dispatcher] /api/contact call failed:', err);
   }
 
-  // 2. Прямой AJAX запрос на FormSubmit
-  try {
-    const fsRes = await fetch(`https://formsubmit.co/ajax/${TARGET_EMAIL}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        'Имя': name,
-        'Телефон': phone,
-        'Email': email || 'Не указан',
-        'Тема': topic || 'Запись на консультацию',
-        'Сообщение': message || 'Без текста',
-        '_subject': `[Заявка с сайта юриста] ${topic || name}`,
-        '_captcha': 'false'
-      })
-    });
-
-    if (fsRes.ok) {
-      const fsJson = await fsRes.json();
-      if (fsJson.success === 'true' || fsJson.success === true) {
-        emailSent = true;
-      }
-    }
-  } catch (err) {
-    console.warn('[Lead Dispatcher] FormSubmit AJAX call failed:', err);
-  }
-
-  // 3. Прямой AJAX запрос на Web3Forms
-  try {
-    const w3Res = await fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        access_key: '18bb6465-b83f-4dbd-89f1-c3adfb3171e1',
+  // 2. Отправка через Google Apps Script
+  if (GOOGLE_SCRIPT_URL) {
+    try {
+      const qParams = new URLSearchParams({
         name,
         phone,
-        email: email || '',
-        subject: `[Заявка с сайта] ${topic || name}`,
-        message: `Имя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nТема: ${topic}\nСообщение: ${message}`
-      })
-    });
-
-    if (w3Res.ok) {
-      const w3Json = await w3Res.json();
-      if (w3Json.success) {
-        emailSent = true;
-      }
+        email: email || 'Не указан',
+        topic: topic || 'Запись на консультацию',
+        message: message || 'Без текста'
+      });
+      
+      await fetch(`${GOOGLE_SCRIPT_URL}?${qParams.toString()}`, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload)
+      });
+      emailSent = true;
+      console.log('[Lead Dispatcher] Заявка успешно отправлена в Google Apps Script');
+    } catch (err) {
+      console.warn('[Lead Dispatcher] Google Script call failed:', err);
     }
-  } catch (err) {
-    console.warn('[Lead Dispatcher] Web3Forms AJAX call failed:', err);
   }
 
   return {
     success: true,
     requestId,
-    emailSent: true,
-    message: 'Заявка успешно принята!'
+    emailSent,
+    message: 'Заявка успешно отправлена!'
   };
 }
