@@ -3,7 +3,6 @@ import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { AboutBio } from './components/AboutBio';
 import { Services } from './components/Services';
-import { LegalCalculator } from './components/LegalCalculator';
 import { ProcessSection } from './components/ProcessSection';
 import { CasesSection } from './components/CasesSection';
 import { ReviewsFAQ } from './components/ReviewsFAQ';
@@ -22,12 +21,6 @@ export default function App() {
     setIsConsultationOpen(true);
   };
 
-  const handleApplyCalculatorEstimate = (category: string, estimatePrice: string) => {
-    const topicText = `Расчет по категории: ${category}`;
-    const msgText = `Рассчитанная ориентировочная стоимость: ${estimatePrice}. Прошу связаться для уточнения пакета документов.`;
-    handleOpenConsultation(topicText, msgText);
-  };
-
   return (
     <div className="min-h-screen bg-[#0b1120] text-slate-100 font-sans selection:bg-amber-400 selection:text-slate-950">
       
@@ -40,8 +33,8 @@ export default function App() {
       <main>
         <Hero
           onOpenConsultationModal={() => handleOpenConsultation()}
-          onOpenCalculator={() => {
-            const el = document.getElementById('calculator');
+          onScrollToContacts={() => {
+            const el = document.getElementById('contacts');
             el?.scrollIntoView({ behavior: 'smooth' });
           }}
         />
@@ -52,10 +45,6 @@ export default function App() {
           onSelectServiceForConsultation={(serviceTitle) =>
             handleOpenConsultation(`Услуга: ${serviceTitle}`)
           }
-        />
-
-        <LegalCalculator
-          onApplyEstimate={handleApplyCalculatorEstimate}
         />
 
         <ProcessSection

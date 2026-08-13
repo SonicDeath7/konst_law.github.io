@@ -21,7 +21,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultationModal }) => {
   const navLinks = [
     { name: 'О юристе', href: '#about' },
     { name: 'Услуги', href: '#services' },
-    { name: 'Калькулятор', href: '#calculator' },
     { name: 'Практика', href: '#cases' },
     { name: 'Этапы', href: '#process' },
     { name: 'Отзывы & FAQ', href: '#faq' },

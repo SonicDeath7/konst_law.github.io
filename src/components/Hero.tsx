@@ -4,12 +4,12 @@ import { ArrowUpRight, ShieldCheck, Scale, Award, CheckCircle2, PhoneCall, FileT
 
 interface HeroProps {
   onOpenConsultationModal: () => void;
-  onOpenCalculator: () => void;
+  onScrollToContacts: () => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({
   onOpenConsultationModal,
-  onOpenCalculator
+  onScrollToContacts
 }) => {
   return (
     <section className="relative pt-6 pb-16 sm:pb-24 px-4 sm:px-8 overflow-hidden">
@@ -70,11 +70,11 @@ export const Hero: React.FC<HeroProps> = ({
               </button>
 
               <button
-                onClick={onOpenCalculator}
+                onClick={onScrollToContacts}
                 className="px-5 py-4 rounded-xl text-sm font-semibold text-slate-200 bg-slate-800/90 border border-slate-700/80 hover:bg-slate-800 hover:border-slate-600 transition-all flex items-center justify-center space-x-2 cursor-pointer"
               >
                 <FileText className="w-4 h-4 text-amber-400" />
-                <span>Рассчитать стоимость дела</span>
+                <span>Задать вопрос / Контакты</span>
               </button>
             </div>
 

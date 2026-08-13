@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LAWYER_INFO } from '../data/legalData';
-import { X, Phone, Send, CheckCircle2, Shield, AlertCircle, Mail } from 'lucide-react';
-import { sendLead, getMailtoLink } from '../utils/sendLead';
+import { X, Shield, ExternalLink, MessageSquare } from 'lucide-react';
 
 interface ConsultationModalProps {
   isOpen: boolean;
@@ -14,213 +13,97 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
   isOpen,
   onClose,
   defaultTopic = 'Запись на консультацию',
-  initialMessage = ''
 }) => {
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [topic, setTopic] = useState(defaultTopic);
-  const [message, setMessage] = useState(initialMessage);
-  const [loading, setLoading] = useState(false);
-  const [submittedId, setSubmittedId] = useState<string | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [iframeLoading, setIframeLoading] = useState(true);
 
   useEffect(() => {
     if (isOpen) {
-      setSubmittedId(null);
-      setErrorMsg(null);
-      setTopic(defaultTopic);
-      setMessage(initialMessage);
+      setIframeLoading(true);
     }
-  }, [isOpen, defaultTopic, initialMessage]);
-
-  const handleClose = () => {
-    setSubmittedId(null);
-    setErrorMsg(null);
-    setName('');
-    setPhone('');
-    setEmail('');
-    onClose();
-  };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !phone.trim()) {
-      setErrorMsg('Укажите ваше имя и контактный телефон.');
-      return;
-    }
-
-    setLoading(true);
-    setErrorMsg(null);
-
-    try {
-      const res = await sendLead({ name, phone, email, topic, message });
-      setSubmittedId(res.requestId);
-    } catch (err) {
-      setErrorMsg('Ошибка отправки. Позвоните напрямую по номеру +7 920 275 7199.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const yandexFormUrl = 'https://forms.yandex.ru/u/6a7e2f0084227c5c9b2bae67?iframe=1';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-[#111a2e] border border-slate-700 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="bg-[#111a2e] border border-slate-700 rounded-3xl max-w-2xl w-full p-4 sm:p-6 space-y-4 max-h-[92vh] flex flex-col shadow-2xl relative overflow-hidden">
         
+        {/* Modal Header */}
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3 pr-10">
+          <div className="space-y-1">
+            <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[11px] font-semibold border border-amber-500/20">
+              <Shield className="w-3.5 h-3.5" />
+              <span>ЯНДЕКС.ФОРМЫ • ОФИЦИАЛЬНАЯ ЗАПИСЬ</span>
+            </div>
+            <h3 className="text-lg sm:text-xl font-bold text-white font-serif">
+              {defaultTopic || 'Запись на консультацию юриста'}
+            </h3>
+          </div>
+        </div>
+
+        {/* Close button */}
         <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full"
+          onClick={onClose}
+          aria-label="Закрыть окно"
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-700 rounded-full transition-colors z-10 cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="space-y-1">
-          <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 text-[11px] font-semibold border border-amber-500/20">
-            <Shield className="w-3.5 h-3.5" />
-            <span>ИП МИРОШИН К.А.</span>
-          </div>
-          <h3 className="text-xl font-bold text-white font-serif">
-            Запись на консультацию юриста
-          </h3>
-          <p className="text-xs text-slate-400">
-            Бесплатный первичный экспресс-разбор вашей правовой ситуации
-          </p>
+        {/* Yandex Form Embed Area */}
+        <div className="relative flex-1 w-full min-h-[460px] sm:min-h-[500px] bg-white rounded-2xl overflow-hidden border border-slate-700/60 shadow-inner">
+          {iframeLoading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-slate-300 space-y-3 z-10">
+              <div className="w-8 h-8 border-3 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-xs font-medium text-slate-400">Загрузка формы Яндекс...</p>
+            </div>
+          )}
+
+          <iframe
+            src={yandexFormUrl}
+            frameBorder="0"
+            name="ya-form-6a7e2f0084227c5c9b2bae67"
+            width="100%"
+            height="100%"
+            onLoad={() => setIframeLoading(false)}
+            className="w-full h-full min-h-[460px] sm:min-h-[500px] border-0"
+            title="Форма записи на консультацию юриста Мирошина К.А."
+          />
         </div>
 
-        {submittedId ? (
-          <div className="p-6 bg-emerald-950/40 border border-emerald-800 rounded-2xl space-y-4 text-center">
-            <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-            <h4 className="text-base font-bold text-white font-serif">Заявка принята!</h4>
-            <p className="text-xs text-emerald-200">
-              ID заявки: <span className="font-mono text-amber-400 font-bold">{submittedId}</span>
-            </p>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Константин Алексеевич свяжется с вами по указанному номеру телефона в ближайшее время.
-            </p>
-            
-            <div className="pt-2 border-t border-emerald-900/60 space-y-2">
-              <p className="text-[11px] text-slate-400">Свяжитесь напрямую с юристом:</p>
-              <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                <a
-                  href={getMailtoLink({ name, phone, email, topic, message })}
-                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-colors"
-                >
-                  <Mail className="w-3.5 h-3.5" />
-                  <span>Отправить на email</span>
-                </a>
-                <a
-                  href={LAWYER_INFO.whatsapp}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-colors"
-                >
-                  <span>WhatsApp</span>
-                </a>
-                <a
-                  href={`tel:${LAWYER_INFO.phone}`}
-                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-colors"
-                >
-                  <Phone className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Позвонить</span>
-                </a>
-              </div>
-            </div>
-
-            <button
-              onClick={handleClose}
-              className="mt-2 w-full py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:brightness-110 rounded-xl cursor-pointer"
+        {/* Modal Footer / Direct Contacts */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-400 border-t border-slate-800/80">
+          <div className="flex items-center space-x-2">
+            <span>Или напишите в мессенджер:</span>
+            <a
+              href={LAWYER_INFO.whatsapp}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emerald-400 hover:underline font-semibold"
             >
-              Закрыть окно
-            </button>
+              WhatsApp
+            </a>
+            <span>•</span>
+            <a
+              href={`tel:${LAWYER_INFO.phone}`}
+              className="text-amber-400 hover:underline font-semibold"
+            >
+              {LAWYER_INFO.phoneFormatted}
+            </a>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1">
-                Ваше имя или название ИП/ООО *
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Михаил / ИП Смирнов"
-                required
-                className="w-full bg-[#0a0f1d] border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500"
-              />
-            </div>
 
-            <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1">
-                Контактный телефон *
-              </label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+7 920 000 0000"
-                required
-                className="w-full bg-[#0a0f1d] border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1">
-                Электронная почта (Email)
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="mail@example.com"
-                className="w-full bg-[#0a0f1d] border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1">
-                Тема обращения
-              </label>
-              <input
-                type="text"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder="Арбитраж, договор, задолженность..."
-                className="w-full bg-[#0a0f1d] border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1">
-                Описание вопроса:
-              </label>
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Кратко опишите ситуацию..."
-                rows={3}
-                className="w-full bg-[#0a0f1d] border border-slate-700 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-amber-500 resize-none"
-              />
-            </div>
-
-            {errorMsg && (
-              <div className="p-3 bg-red-950/50 border border-red-800 rounded-xl text-xs text-red-300 flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                <span>{errorMsg}</span>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:brightness-110 disabled:opacity-50 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 cursor-pointer"
-            >
-              <Send className="w-4 h-4" />
-              <span>{loading ? 'Отправка...' : 'Отправить заявку юристу'}</span>
-            </button>
-          </form>
-        )}
+          <a
+            href="https://forms.yandex.ru/u/6a7e2f0084227c5c9b2bae67/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center space-x-1 text-slate-400 hover:text-amber-400 transition-colors"
+          >
+            <span>Открыть форму на весь экран</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
 
       </div>
     </div>
