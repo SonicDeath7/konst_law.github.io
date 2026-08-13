@@ -155,7 +155,7 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
             </p>
 
             {/* Embedded Yandex Form Container */}
-            <div className="relative w-full min-h-[520px] bg-white rounded-2xl overflow-hidden border border-slate-700/60 shadow-inner">
+            <div className="relative w-full min-h-[580px] sm:min-h-[580px] h-[600px] sm:h-[620px] bg-white rounded-2xl overflow-y-auto border border-slate-700/60 shadow-inner">
               {iframeLoading && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-slate-300 space-y-3 z-10">
                   <div className="w-8 h-8 border-3 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
@@ -168,9 +168,9 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
                 frameBorder="0"
                 name="ya-form-6a7e3a1302848f6ab9df895b"
                 width="100%"
-                height="560"
+                height="100%"
                 onLoad={() => setIframeLoading(false)}
-                className="w-full min-h-[520px] border-0"
+                className="w-full h-full min-h-[580px] border-0"
                 title="Яндекс Форма записи к юристу Мирошину К.А."
               />
             </div>
