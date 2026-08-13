@@ -12,7 +12,7 @@ export const LAWYER_INFO = {
   telegram: 'https://t.me/+79202757199',
   whatsapp: 'https://wa.me/79202757199',
   location: 'г. Тула / Москва / Вся Россия (Дистанционно и очно)',
-  photoUrl: '/images/photo.jpg',
+  photoUrl: 'images/photo.jpg',
   inn: '710000000000', // ИНН
   ogrnip: '321710000012345', // ОГРНИП
   principles: [

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#090d16" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#d4af37" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  
+  <rect width="800" height="1000" fill="url(#bg)" />
+  <circle cx="400" cy="400" r="350" fill="url(#glow)" />
+  
+  <!-- Decorative Frame -->
+  <rect x="40" y="40" width="720" height="920" rx="32" fill="none" stroke="#334155" stroke-width="2" />
+  <rect x="60" y="60" width="680" height="880" rx="24" fill="none" stroke="#d4af37" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="8 8" />
+
+  <!-- Scales of Justice Icon -->
+  <g transform="translate(400, 360) scale(2.2)" fill="none" stroke="url(#gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m16 16 3-8 3 8" />
+    <path d="M7 21h10" />
+    <path d="M12 3v18" />
+    <path d="M3 7h18" />
+    <path d="M5 12h4l-2 5z" />
+    <path d="M15 12h4l-2 5z" />
+  </g>
+
+  <!-- Silhouette / Crest Emblem -->
+  <circle cx="400" cy="380" r="140" fill="none" stroke="url(#gold)" stroke-width="2" stroke-opacity="0.4" />
+  
+  <!-- Monogram Initials -->
+  <text x="400" y="620" text-anchor="middle" fill="#f8fafc" font-family="Georgia, serif" font-size="52" font-weight="bold" letter-spacing="2">МИРОШИН К.А.</text>
+  <text x="400" y="680" text-anchor="middle" fill="#fbbf24" font-family="sans-serif" font-size="24" font-weight="600" letter-spacing="4">ЮРИДИЧЕСКАЯ ПРАКТИКА</text>
+  <text x="400" y="730" text-anchor="middle" fill="#94a3b8" font-family="sans-serif" font-size="20">Нажмите «Загрузить фото» для установки вашей фотографии</text>
+</svg>
