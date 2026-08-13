@@ -1,0 +1,49 @@
+name: Deploy Static Content to Pages
+
+on:
+  push:
+    branches: ["main"] # или "master", если ваша главная ветка называется так
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+        # Если проект лежит в подпапке, добавьте в начало строки: cd название_папки &&
+
+      - name: Build
+        run: bun run build
+        # Если проект лежит в подпапке, добавьте в начало строки: cd название_папки &&
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist' # Измените на './название_папки/dist', если проект в подпапке
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
