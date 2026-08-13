@@ -20,17 +20,14 @@ function getTransporter() {
   const host = process.env.SMTP_HOST || 'smtp.yandex.ru';
   const port = parseInt(process.env.SMTP_PORT || '465', 10);
   const user = process.env.SMTP_USER || 'sonicdeath7@yandex.ru';
-  const pass = process.env.SMTP_PASS || '655e270905f76b04a0c27586d4b64d95';
+  const pass = process.env.SMTP_PASS || '608afa43ea25130d5315f497b76a6cc3';
 
-  if (user && pass) {
-    return nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: { user, pass }
-    });
-  }
-  return null;
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: true,
+    auth: { user, pass }
+  });
 }
 
 // In-memory store for contact form requests
