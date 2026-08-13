@@ -81,7 +81,7 @@ export async function sendLead(data: LeadData): Promise<LeadResponse> {
         },
         body: JSON.stringify({
           from: 'Сайт Юриста <onboarding@resend.dev>',
-          to: ['sonicdeath7@yandex.ru', 'darkbeacon71@gmail.com'],
+          to: ['darkbeacon71@gmail.com'],
           subject: `[Заявка с сайта] ${topic || 'Консультация'} — ${name}`,
           html: `
             <div style="font-family: Arial, sans-serif; padding: 20px;">

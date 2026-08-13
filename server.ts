@@ -110,7 +110,7 @@ app.post('/api/contact', async (req, res) => {
       },
       body: JSON.stringify({
         from: 'Сайт Юриста <onboarding@resend.dev>',
-        to: ['sonicdeath7@yandex.ru'],
+        to: ['darkbeacon71@gmail.com'],
         subject: `[Заявка с сайта юриста] ${newReq.topic} - ${newReq.name}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
@@ -138,37 +138,6 @@ app.post('/api/contact', async (req, res) => {
       emailSent = true;
       newReq.emailSent = true;
       console.log(`[RESEND SUCCESS] ID: ${resendResult.id}`);
-    } else {
-      // If Resend failed because recipient must be account owner email
-      if (resendResult?.message?.includes('can only send to your own email address')) {
-        // Try sending to darkbeacon71@gmail.com
-        const resendResponse2 = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${RESEND_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            from: 'Сайт Юриста <onboarding@resend.dev>',
-            to: ['darkbeacon71@gmail.com'],
-            subject: `[Заявка с сайта юриста] ${newReq.topic} - ${newReq.name}`,
-            html: `
-              <h2>🔔 Новая заявка с сайта для ${NOTIFICATION_EMAIL}</h2>
-              <p><b>Имя:</b> ${newReq.name}</p>
-              <p><b>Телефон:</b> ${newReq.phone}</p>
-              <p><b>Email:</b> ${newReq.email}</p>
-              <p><b>Тема:</b> ${newReq.topic}</p>
-              <p><b>Сообщение:</b> ${newReq.message}</p>
-            `
-          })
-        });
-        const r2: any = await resendResponse2.json();
-        console.log('[RESEND FALLBACK RESPONSE]', resendResponse2.status, JSON.stringify(r2));
-        if (resendResponse2.ok && r2.id) {
-          emailSent = true;
-          newReq.emailSent = true;
-        }
-      }
     }
   } catch (resendErr: any) {
     console.error('[RESEND ERROR]', resendErr?.message || resendErr);
