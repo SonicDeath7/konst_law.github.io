@@ -8,7 +8,7 @@ interface ContactSectionProps {
 
 export const ContactSection: React.FC<ContactSectionProps> = () => {
   const [iframeLoading, setIframeLoading] = useState(true);
-  const yandexFormUrl = 'https://forms.yandex.ru/u/6a7e2f0084227c5c9b2bae67?iframe=1';
+  const yandexFormUrl = 'https://forms.yandex.ru/u/6a7e3a1302848f6ab9df895b?iframe=1';
 
   return (
     <section id="contacts" className="py-16 sm:py-24 px-4 sm:px-8 bg-[#0b1120] relative">
@@ -140,7 +140,7 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
               </div>
 
               <a
-                href="https://forms.yandex.ru/u/6a7e2f0084227c5c9b2bae67/"
+                href="https://forms.yandex.ru/u/6a7e3a1302848f6ab9df895b/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hidden sm:inline-flex items-center space-x-1 text-xs text-slate-400 hover:text-amber-400 transition-colors"
@@ -166,7 +166,7 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
               <iframe
                 src={yandexFormUrl}
                 frameBorder="0"
-                name="ya-form-6a7e2f0084227c5c9b2bae67"
+                name="ya-form-6a7e3a1302848f6ab9df895b"
                 width="100%"
                 height="560"
                 onLoad={() => setIframeLoading(false)}

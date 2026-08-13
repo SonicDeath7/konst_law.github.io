@@ -24,7 +24,7 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
 
   if (!isOpen) return null;
 
-  const yandexFormUrl = 'https://forms.yandex.ru/u/6a7e2f0084227c5c9b2bae67?iframe=1';
+  const yandexFormUrl = 'https://forms.yandex.ru/u/6a7e3a1302848f6ab9df895b?iframe=1';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
@@ -64,7 +64,7 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
           <iframe
             src={yandexFormUrl}
             frameBorder="0"
-            name="ya-form-6a7e2f0084227c5c9b2bae67"
+            name="ya-form-6a7e3a1302848f6ab9df895b"
             width="100%"
             height="100%"
             onLoad={() => setIframeLoading(false)}
@@ -95,7 +95,7 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
           </div>
 
           <a
-            href="https://forms.yandex.ru/u/6a7e2f0084227c5c9b2bae67/"
+            href="https://forms.yandex.ru/u/6a7e3a1302848f6ab9df895b/"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center space-x-1 text-slate-400 hover:text-amber-400 transition-colors"
