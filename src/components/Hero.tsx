@@ -140,7 +140,7 @@ export const Hero: React.FC<HeroProps> = ({
                 {/* Portrait Image */}
                 <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900 flex items-center justify-center group">
                   <img
-                    src="/images/photo.jpg"
+                    src="images/photo.jpg"
                     alt="Мирошин Константин Алексеевич — Юрист"
                     className="w-full h-full object-cover object-top filter contrast-[1.03]"
                   />
