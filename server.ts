@@ -100,7 +100,7 @@ app.post('/api/contact', async (req, res) => {
   let emailErrorMsg = '';
 
   // PRIMARY METHOD: Resend API (HTTPS)
-  const RESEND_KEY = 're_fPuWkXjD_2NCpPyNV47Xk56Jw5qjy1frE';
+  const RESEND_KEY = process.env.RESEND_API_KEY || 're_fPuWkXjD_2NCpPyNV47Xk56Jw5qjy1frE';
   try {
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -110,7 +110,7 @@ app.post('/api/contact', async (req, res) => {
       },
       body: JSON.stringify({
         from: 'Сайт Юриста <onboarding@resend.dev>',
-        to: ['darkbeacon71@gmail.com'],
+        to: [NOTIFICATION_EMAIL],
         subject: `[Заявка с сайта юриста] ${newReq.topic} - ${newReq.name}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
