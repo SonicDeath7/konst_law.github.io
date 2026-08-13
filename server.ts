@@ -96,96 +96,52 @@ app.post('/api/contact', async (req, res) => {
 
   console.log(`[CONTACT FORM] Новая заявка от ${name} (${phone}): ${topic}`);
 
-  // Send Telegram notification
-  const tgToken = process.env.TELEGRAM_BOT_TOKEN || '8920101288:AAEQhC08geOKnAvWcnvwjtvb0x8dJxCgx3E';
-  const tgChatId = process.env.TELEGRAM_CHAT_ID || '226821933';
-
-  if (tgToken) {
-    try {
-      const tgText = `🔔 <b>Новая заявка с сайта юриста!</b>\n\n` +
-        `👤 <b>Имя:</b> ${newReq.name}\n` +
-        `📞 <b>Телефон:</b> ${newReq.phone}\n` +
-        `📧 <b>Email:</b> ${newReq.email}\n` +
-        `📋 <b>Тема:</b> ${newReq.topic}\n` +
-        `💬 <b>Сообщение:</b> ${newReq.message || 'Без текста'}`;
-
-      const chatIdsToSend = new Set<string>();
-      if (tgChatId) {
-        chatIdsToSend.add(String(tgChatId));
-      }
-
-      // Try getUpdates to find active subscribers/chats automatically
-      try {
-        const updatesRes = await fetch(`https://api.telegram.org/bot${tgToken}/getUpdates`);
-        if (updatesRes.ok) {
-          const updatesData: any = await updatesRes.json();
-          if (updatesData.ok && Array.isArray(updatesData.result)) {
-            for (const item of updatesData.result) {
-              const cid = item.message?.chat?.id || item.channel_post?.chat?.id;
-              if (cid) {
-                chatIdsToSend.add(String(cid));
-              }
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('[TELEGRAM GETUPDATES WARN]', e);
-      }
-
-      for (const cid of chatIdsToSend) {
-        await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: cid, parse_mode: 'HTML', text: tgText })
-        });
-      }
-    } catch (tgErr) {
-      console.error('[TELEGRAM ERROR]', tgErr);
-    }
-  }
-
-  // Send email notification to sonicdeath7@yandex.ru
+  // Send email notification to sonicdeath7@yandex.ru via Yandex SMTP
   const transporter = getTransporter();
-  let emailStatusNotice = '';
+  let emailSent = false;
+  let emailErrorMsg = '';
 
   if (transporter) {
     try {
       const mailSender = process.env.SMTP_USER || 'sonicdeath7@yandex.ru';
-      await transporter.sendMail({
-        from: `"Сайт Юриста" <${mailSender}>`,
+      const info = await transporter.sendMail({
+        from: `"Сайт Юриста Мирошина" <${mailSender}>`,
         to: NOTIFICATION_EMAIL,
         replyTo: email && email.includes('@') ? email : undefined,
-        subject: `[Новая заявка с сайта] ${newReq.topic}`,
+        subject: `[Заявка с сайта юриста] ${newReq.topic}`,
         html: `
-          <h2>Новая заявка на консультацию</h2>
-          <p><strong>Имя:</strong> ${newReq.name}</p>
-          <p><strong>Телефон:</strong> ${newReq.phone}</p>
-          <p><strong>E-mail клиента:</strong> ${newReq.email}</p>
-          <p><strong>Тема:</strong> ${newReq.topic}</p>
-          <p><strong>Сообщение:</strong></p>
-          <blockquote style="background: #f4f4f4; padding: 10px; border-left: 3px solid #d4af37;">
-            ${newReq.message || 'Без комментария'}
-          </blockquote>
-          <p><em>Заявка принята: ${new Date().toLocaleString('ru-RU')}</em></p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+            <h2 style="color: #1a2a3a; margin-top: 0;">🔔 Новая заявка с сайта</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr><td style="padding: 8px 0; font-weight: bold; width: 120px;">Имя:</td><td>${newReq.name}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold;">Телефон:</td><td><a href="tel:${newReq.phone}" style="color: #c5a059; text-decoration: none;">${newReq.phone}</a></td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold;">Email клиента:</td><td>${newReq.email}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold;">Тема:</td><td>${newReq.topic}</td></tr>
+            </table>
+            <div style="margin-top: 15px; padding: 12px; background: #f9f9f9; border-left: 4px solid #c5a059; border-radius: 4px;">
+              <strong>Сообщение:</strong><br>
+              ${newReq.message ? newReq.message.replace(/\n/g, '<br>') : '<em>Без текста сообщения</em>'}
+            </div>
+            <p style="font-size: 12px; color: #888; margin-top: 20px;">Заявка принята: ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} (МСК)</p>
+          </div>
         `
       });
       newReq.emailSent = true;
-      console.log(`[EMAIL SUCCESS] Уведомление отправлено на ${NOTIFICATION_EMAIL}`);
-      emailStatusNotice = `Заявка принята и отправлена на ${NOTIFICATION_EMAIL}.`;
-    } catch (err) {
-      console.error(`[EMAIL ERROR] Ошибка отправки на ${NOTIFICATION_EMAIL}:`, err);
-      emailStatusNotice = `Заявка сохранена в базе.`;
+      emailSent = true;
+      console.log(`[EMAIL SUCCESS] Письмо успешно отправлено на ${NOTIFICATION_EMAIL}. MessageId: ${info.messageId}`);
+    } catch (err: any) {
+      console.error(`[EMAIL ERROR] Ошибка отправки на ${NOTIFICATION_EMAIL}:`, err?.message || err);
+      emailErrorMsg = err?.message || String(err);
     }
-  } else {
-    console.log(`[EMAIL INFO] Уведомление для ${NOTIFICATION_EMAIL} зафиксировано в системе. Укажите SMTP_USER и SMTP_PASS в секретах/переменных для реальной отправки писем.`);
-    emailStatusNotice = `Заявка принята и зафиксирована для ${NOTIFICATION_EMAIL}.`;
   }
 
   res.json({
     success: true,
     requestId: newReq.id,
     targetEmail: NOTIFICATION_EMAIL,
-    message: `Заявка успешно отправлена! Константин Алексеевич свяжется с вами в течение 15-30 минут.`
+    emailSent,
+    emailError: emailErrorMsg || undefined,
+    message: `Заявка успешно отправлена! Константин Алексеевич свяжется с вами в ближайшее время.`
   });
 });
 

@@ -7,23 +7,67 @@ export interface LeadData {
 }
 
 export const TARGET_EMAIL = 'sonicdeath7@yandex.ru';
-export const TELEGRAM_BOT_TOKEN = '8920101288:AAEQhC08geOKnAvWcnvwjtvb0x8dJxCgx3E';
-export const TELEGRAM_CHAT_ID = '226821933';
 
 export interface LeadResponse {
   success: boolean;
   requestId: string;
   message?: string;
+  emailSent?: boolean;
 }
 
 /**
- * Диспетчер отправки заявки напрямую на бэкенд /api/contact (Yandex SMTP)
+ * Вспомогательная функция отправки формы через скрытый iframe (для статического хостинга без бэкенда)
+ */
+function submitHiddenForm(actionUrl: string, fields: Record<string, string>): void {
+  if (typeof document === 'undefined') return;
+  try {
+    const iframeName = `hidden_lead_iframe_${Math.random().toString(36).substring(2, 9)}`;
+    const iframe = document.createElement('iframe');
+    iframe.name = iframeName;
+    iframe.style.display = 'none';
+    iframe.style.width = '0px';
+    iframe.style.height = '0px';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+
+    const form = document.createElement('form');
+    form.target = iframeName;
+    form.action = actionUrl;
+    form.method = 'POST';
+    form.style.display = 'none';
+
+    for (const [key, value] of Object.entries(fields)) {
+      if (value !== undefined && value !== null) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = String(value);
+        form.appendChild(input);
+      }
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+
+    setTimeout(() => {
+      try {
+        if (form.parentNode) form.parentNode.removeChild(form);
+        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      } catch (e) {}
+    }, 10000);
+  } catch (err) {
+    console.warn('[HiddenForm] error:', err);
+  }
+}
+
+/**
+ * Главный диспетчер отправки заявки на почту sonicdeath7@yandex.ru
  */
 export async function sendLead(data: LeadData): Promise<LeadResponse> {
   const { name, phone, email, topic, message } = data;
   const requestId = `lead-${Date.now()}`;
 
-  // 1. Прямая отправка на серверную почту Яндекс (/api/contact)
+  // 1. Первичная отправка на свой Express бэкенд с Yandex SMTP
   try {
     const res = await fetch('/api/contact', {
       method: 'POST',
@@ -34,49 +78,34 @@ export async function sendLead(data: LeadData): Promise<LeadResponse> {
     if (res.ok) {
       const result = await res.json();
       if (result && result.success) {
+        console.log('[Lead Dispatcher] Заявка успешно обработана сервером /api/contact:', result);
         return {
           success: true,
           requestId: result.requestId || requestId,
-          message: result.message
+          message: result.message,
+          emailSent: result.emailSent
         };
       }
     }
   } catch (err) {
-    console.warn('[Lead Dispatcher] /api/contact call failed:', err);
+    console.warn('[Lead Dispatcher] /api/contact не доступен (статический хостинг), запускаем фоллбэк отправки');
   }
 
-  // 2. Прямой вызов Telegram API (резервный)
-  if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-    (async () => {
-      try {
-        const tgText = `🔔 <b>Новая заявка с сайта юриста!</b>\n\n` +
-          `👤 <b>Имя:</b> ${name}\n` +
-          `📞 <b>Телефон:</b> ${phone}\n` +
-          `📧 <b>Email:</b> ${email || 'Не указан'}\n` +
-          `📋 <b>Тема:</b> ${topic || 'Запись на консультацию'}\n` +
-          `💬 <b>Сообщение:</b> ${message || 'Без текста'}`;
-
-        const encodedText = encodeURIComponent(tgText);
-        const directTgUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&parse_mode=HTML&text=${encodedText}`;
-
-        const proxyUrls = [
-          `https://api.allorigins.win/raw?url=${encodeURIComponent(directTgUrl)}`,
-          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(directTgUrl)}`,
-          directTgUrl
-        ];
-
-        for (const url of proxyUrls) {
-          try {
-            const r = await fetch(url, { method: 'GET', mode: 'cors' });
-            if (r.ok) break;
-          } catch (e) {}
-        }
-      } catch (e) {}
-    })();
-  }
+  // 2. Резервный канал на случай размещения на статическом хостинге (GitHub Pages)
+  const subjectStr = `[Заявка с сайта юриста] ${topic || name}`;
+  submitHiddenForm(`https://formsubmit.co/${TARGET_EMAIL}`, {
+    'Имя': name,
+    'Телефон': phone,
+    'Email': email || 'Не указан',
+    'Тема': topic || 'Запись на консультацию',
+    'Сообщение': message || 'Без текста',
+    '_subject': subjectStr,
+    '_captcha': 'false'
+  });
 
   return {
     success: true,
-    requestId
+    requestId,
+    message: 'Заявка принята и отправлена на почту юриста!'
   };
 }
