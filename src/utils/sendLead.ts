@@ -23,6 +23,19 @@ export interface LeadResponse {
   message?: string;
 }
 
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 2500): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(id);
+    return res;
+  } catch (err) {
+    clearTimeout(id);
+    throw err;
+  }
+}
+
 /**
  * Universal Lead Dispatcher
  */
@@ -31,7 +44,7 @@ export async function sendLead(data: LeadData): Promise<LeadResponse> {
   const fallbackId = `req-${Date.now()}`;
   let isNetlifyRecorded = false;
 
-  // Канал 1: Telegram Bot (Мгновенно на телефон, 100% бесплатно)
+  // Канал 1: Telegram Bot (с обходом блокировок в РФ через прокси-зеркала)
   if (TELEGRAM_BOT_TOKEN) {
     try {
       const tgText = `🔔 <b>Новая заявка с сайта юриста!</b>\n\n` +
@@ -46,39 +59,78 @@ export async function sendLead(data: LeadData): Promise<LeadResponse> {
         targetChatIds.add(String(TELEGRAM_CHAT_ID));
       }
 
-      // Получаем активные чаты пользователей, нажимавших /start в боте
-      try {
-        const updatesRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates`);
-        if (updatesRes.ok) {
-          const updatesData = await updatesRes.json();
-          if (updatesData.ok && Array.isArray(updatesData.result)) {
-            for (const item of updatesData.result) {
-              const cid = item.message?.chat?.id || item.channel_post?.chat?.id || item.my_chat_member?.chat?.id;
-              if (cid) targetChatIds.add(String(cid));
+      // Список эндпоинтов для отправки в Telegram (прямой + прокси для пользователей из РФ без ВПН)
+      const telegramEndpoints = [
+        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+        `https://telegg.ru/orig/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+        `https://corsproxy.io/?https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`)}`
+      ];
+
+      // Автоматическое получение новых чатов (если было)
+      for (const ep of telegramEndpoints.slice(0, 2)) {
+        try {
+          const getUpdatesUrl = ep.replace('/sendMessage', '/getUpdates');
+          const updatesRes = await fetchWithTimeout(getUpdatesUrl, { method: 'GET' }, 2000);
+          if (updatesRes.ok) {
+            const updatesData = await updatesRes.json();
+            if (updatesData.ok && Array.isArray(updatesData.result)) {
+              for (const item of updatesData.result) {
+                const cid = item.message?.chat?.id || item.channel_post?.chat?.id || item.my_chat_member?.chat?.id;
+                if (cid) targetChatIds.add(String(cid));
+              }
             }
+            break; // Если один из эндпоинтов ответил, дальше искать не нужно
           }
+        } catch (e) {
+          // Игнорируем и пробуем следующий
         }
-      } catch (e) {
-        console.warn('[Telegram Dispatcher] Failed to auto-fetch chat IDs:', e);
       }
 
       if (targetChatIds.size > 0) {
         let sentAny = false;
         for (const cid of targetChatIds) {
-          const tgRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: cid,
-              parse_mode: 'HTML',
-              text: tgText
-            })
+          const payload = JSON.stringify({
+            chat_id: cid,
+            parse_mode: 'HTML',
+            text: tgText
           });
-          if (tgRes.ok) sentAny = true;
+
+          // Пробуем поочередно отправить через каждый эндпоинт пока один не сработает
+          for (const endpoint of telegramEndpoints) {
+            try {
+              const tgRes = await fetchWithTimeout(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: payload
+              }, 3000);
+
+              if (tgRes.ok) {
+                sentAny = true;
+                console.log(`[Lead Dispatcher] Telegram message delivered via: ${endpoint}`);
+                break; // Сообщение успешно доставлено!
+              }
+            } catch (err) {
+              console.warn(`[Lead Dispatcher] Telegram endpoint ${endpoint} failed, trying next proxy...`);
+            }
+          }
         }
 
         if (sentAny) {
-          console.log('[Lead Dispatcher] Telegram message sent successfully!');
+          // Запускаем резервную отправку на Email через Web3Forms в фоновом режиме (без ожидания)
+          if (WEB3FORMS_KEY) {
+            fetch('https://api.web3forms.com/submit', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+              body: JSON.stringify({
+                access_key: WEB3FORMS_KEY,
+                name, phone, from_name: 'Сайт Юриста',
+                subject: `[Заявка с сайта юриста] ${topic || name}`,
+                message: `Имя: ${name}\nТелефон: ${phone}\nEmail: ${email || 'Не указан'}\nТема: ${topic || 'Консультация'}\nСообщение: ${message || 'Без текста'}`
+              })
+            }).catch(() => {});
+          }
+
           return { success: true, requestId: `tg-${Date.now()}` };
         }
       }
