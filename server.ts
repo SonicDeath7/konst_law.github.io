@@ -96,12 +96,86 @@ app.post('/api/contact', async (req, res) => {
 
   console.log(`[CONTACT FORM] Новая заявка от ${name} (${phone}): ${topic}`);
 
-  // Send email notification to sonicdeath7@yandex.ru via Yandex SMTP
-  const transporter = getTransporter();
   let emailSent = false;
   let emailErrorMsg = '';
 
-  if (transporter) {
+  // PRIMARY METHOD: Resend API (HTTPS)
+  const RESEND_KEY = 're_V2SjcetA_LBCieiWXoe3wkEdspcuRSvMP';
+  try {
+    const resendResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'Сайт Юриста <onboarding@resend.dev>',
+        to: ['sonicdeath7@yandex.ru'],
+        subject: `[Заявка с сайта юриста] ${newReq.topic} - ${newReq.name}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+            <h2 style="color: #1a2a3a; margin-top: 0;">🔔 Новая заявка с сайта</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr><td style="padding: 8px 0; font-weight: bold; width: 120px;">Имя:</td><td>${newReq.name}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold;">Телефон:</td><td><a href="tel:${newReq.phone}" style="color: #c5a059; text-decoration: none;">${newReq.phone}</a></td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold;">Email клиента:</td><td>${newReq.email}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold;">Тема:</td><td>${newReq.topic}</td></tr>
+            </table>
+            <div style="margin-top: 15px; padding: 12px; background: #f9f9f9; border-left: 4px solid #c5a059; border-radius: 4px;">
+              <strong>Сообщение:</strong><br>
+              ${newReq.message ? newReq.message.replace(/\n/g, '<br>') : '<em>Без текста сообщения</em>'}
+            </div>
+            <p style="font-size: 12px; color: #888; margin-top: 20px;">Заявка принята: ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} (МСК)</p>
+          </div>
+        `
+      })
+    });
+
+    const resendResult: any = await resendResponse.json();
+    console.log('[RESEND RESPONSE]', resendResponse.status, JSON.stringify(resendResult));
+
+    if (resendResponse.ok && resendResult.id) {
+      emailSent = true;
+      newReq.emailSent = true;
+      console.log(`[RESEND SUCCESS] ID: ${resendResult.id}`);
+    } else {
+      // If Resend failed because recipient must be account owner email
+      if (resendResult?.message?.includes('can only send to your own email address')) {
+        // Try sending to darkbeacon71@gmail.com
+        const resendResponse2 = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${RESEND_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: 'Сайт Юриста <onboarding@resend.dev>',
+            to: ['darkbeacon71@gmail.com'],
+            subject: `[Заявка с сайта юриста] ${newReq.topic} - ${newReq.name}`,
+            html: `
+              <h2>🔔 Новая заявка с сайта для ${NOTIFICATION_EMAIL}</h2>
+              <p><b>Имя:</b> ${newReq.name}</p>
+              <p><b>Телефон:</b> ${newReq.phone}</p>
+              <p><b>Email:</b> ${newReq.email}</p>
+              <p><b>Тема:</b> ${newReq.topic}</p>
+              <p><b>Сообщение:</b> ${newReq.message}</p>
+            `
+          })
+        });
+        const r2: any = await resendResponse2.json();
+        console.log('[RESEND FALLBACK RESPONSE]', resendResponse2.status, JSON.stringify(r2));
+        if (resendResponse2.ok && r2.id) {
+          emailSent = true;
+          newReq.emailSent = true;
+        }
+      }
+    }
+  } catch (resendErr: any) {
+    console.error('[RESEND ERROR]', resendErr?.message || resendErr);
+  }
+
+  if (!emailSent) {
+    const transporter = getTransporter();
     try {
       const mailSender = process.env.SMTP_USER || 'sonicdeath7@yandex.ru';
       const info = await transporter.sendMail({

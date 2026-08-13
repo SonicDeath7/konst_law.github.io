@@ -69,7 +69,42 @@ export async function sendLead(data: LeadData): Promise<LeadResponse> {
     console.warn('[Lead Dispatcher] /api/contact call failed:', err);
   }
 
-  // 2. Отправка через Google Apps Script
+  // 2. Прямой вызов Resend API с клиента
+  const RESEND_API_KEY = 're_V2SjcetA_LBCieiWXoe3wkEdspcuRSvMP';
+  if (!emailSent) {
+    try {
+      const resendRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: 'Сайт Юриста <onboarding@resend.dev>',
+          to: ['sonicdeath7@yandex.ru', 'darkbeacon71@gmail.com'],
+          subject: `[Заявка с сайта] ${topic || 'Консультация'} — ${name}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px;">
+              <h2>🔔 Новая заявка с сайта юриста</h2>
+              <p><b>Имя:</b> ${name}</p>
+              <p><b>Телефон:</b> ${phone}</p>
+              <p><b>Email:</b> ${email || 'Не указан'}</p>
+              <p><b>Тема:</b> ${topic || 'Запись на консультацию'}</p>
+              <p><b>Сообщение:</b> ${message || 'Без текста'}</p>
+            </div>
+          `
+        })
+      });
+      if (resendRes.ok) {
+        emailSent = true;
+        console.log('[Lead Dispatcher] Заявка успешно отправлена через Resend API с клиента');
+      }
+    } catch (err) {
+      console.warn('[Lead Dispatcher] Direct Resend API call failed:', err);
+    }
+  }
+
+  // 3. Отправка через Google Apps Script
   if (GOOGLE_SCRIPT_URL) {
     try {
       const qParams = new URLSearchParams({
