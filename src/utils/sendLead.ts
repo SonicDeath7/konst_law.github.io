@@ -11,7 +11,7 @@ export const TARGET_EMAIL = 'sonicdeath7@yandex.ru';
 // ⚙️ Бесплатные настройки каналов связи для статических сайтов (Netlify, GitHub Pages)
 // Вы можете вставить токен Telegram-бота и ID чата, чтобы заявки моментально приходили в Telegram!
 export const TELEGRAM_BOT_TOKEN = '8920101288:AAEQhC08geOKnAvWcnvwjtvb0x8dJxCgx3E';
-export const TELEGRAM_CHAT_ID = '';   // Автоматически определяется через getUpdates если пусто!
+export const TELEGRAM_CHAT_ID = '226821933';
 
 // Бесплатный ключ Web3Forms (получить бесплатно за 5 секунд на https://web3forms.com для sonicdeath7@yandex.ru)
 export const WEB3FORMS_KEY = '18bb6465-b83f-4dbd-89f1-c3adfb3171e1'; 

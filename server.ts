@@ -101,6 +101,8 @@ app.post('/api/contact', async (req, res) => {
 
   // Send Telegram notification
   const tgToken = process.env.TELEGRAM_BOT_TOKEN || '8920101288:AAEQhC08geOKnAvWcnvwjtvb0x8dJxCgx3E';
+  const tgChatId = process.env.TELEGRAM_CHAT_ID || '226821933';
+
   if (tgToken) {
     try {
       const tgText = `🔔 <b>Новая заявка с сайта юриста!</b>\n\n` +
@@ -110,21 +112,35 @@ app.post('/api/contact', async (req, res) => {
         `📋 <b>Тема:</b> ${newReq.topic}\n` +
         `💬 <b>Сообщение:</b> ${newReq.message || 'Без текста'}`;
 
-      const updatesRes = await fetch(`https://api.telegram.org/bot${tgToken}/getUpdates`);
-      if (updatesRes.ok) {
-        const updatesData: any = await updatesRes.json();
-        if (updatesData.ok && Array.isArray(updatesData.result)) {
-          for (const item of updatesData.result) {
-            const cid = item.message?.chat?.id || item.channel_post?.chat?.id;
-            if (cid) {
-              await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: cid, parse_mode: 'HTML', text: tgText })
-              });
+      const chatIdsToSend = new Set<string | number>();
+      if (tgChatId) {
+        chatIdsToSend.add(tgChatId);
+      }
+
+      // Try getUpdates to find active subscribers/chats automatically
+      try {
+        const updatesRes = await fetch(`https://api.telegram.org/bot${tgToken}/getUpdates`);
+        if (updatesRes.ok) {
+          const updatesData: any = await updatesRes.json();
+          if (updatesData.ok && Array.isArray(updatesData.result)) {
+            for (const item of updatesData.result) {
+              const cid = item.message?.chat?.id || item.channel_post?.chat?.id;
+              if (cid) {
+                chatIdsToSend.add(cid);
+              }
             }
           }
         }
+      } catch (e) {
+        console.warn('[TELEGRAM GETUPDATES WARN]', e);
+      }
+
+      for (const cid of chatIdsToSend) {
+        await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: cid, parse_mode: 'HTML', text: tgText })
+        });
       }
     } catch (tgErr) {
       console.error('[TELEGRAM ERROR]', tgErr);
