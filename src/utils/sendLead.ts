@@ -41,9 +41,9 @@ export async function sendLead(data: LeadData): Promise<LeadResponse> {
         `📋 <b>Тема:</b> ${topic || 'Запись на консультацию'}\n` +
         `💬 <b>Сообщение:</b> ${message || 'Без текста'}`;
 
-      const targetChatIds = new Set<string | number>();
+      const targetChatIds = new Set<string>();
       if (TELEGRAM_CHAT_ID) {
-        targetChatIds.add(TELEGRAM_CHAT_ID);
+        targetChatIds.add(String(TELEGRAM_CHAT_ID));
       }
 
       // Получаем активные чаты пользователей, нажимавших /start в боте
@@ -54,7 +54,7 @@ export async function sendLead(data: LeadData): Promise<LeadResponse> {
           if (updatesData.ok && Array.isArray(updatesData.result)) {
             for (const item of updatesData.result) {
               const cid = item.message?.chat?.id || item.channel_post?.chat?.id || item.my_chat_member?.chat?.id;
-              if (cid) targetChatIds.add(cid);
+              if (cid) targetChatIds.add(String(cid));
             }
           }
         }

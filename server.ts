@@ -112,9 +112,9 @@ app.post('/api/contact', async (req, res) => {
         `📋 <b>Тема:</b> ${newReq.topic}\n` +
         `💬 <b>Сообщение:</b> ${newReq.message || 'Без текста'}`;
 
-      const chatIdsToSend = new Set<string | number>();
+      const chatIdsToSend = new Set<string>();
       if (tgChatId) {
-        chatIdsToSend.add(tgChatId);
+        chatIdsToSend.add(String(tgChatId));
       }
 
       // Try getUpdates to find active subscribers/chats automatically
@@ -126,7 +126,7 @@ app.post('/api/contact', async (req, res) => {
             for (const item of updatesData.result) {
               const cid = item.message?.chat?.id || item.channel_post?.chat?.id;
               if (cid) {
-                chatIdsToSend.add(cid);
+                chatIdsToSend.add(String(cid));
               }
             }
           }
