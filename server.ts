@@ -100,7 +100,7 @@ app.post('/api/contact', async (req, res) => {
   let emailErrorMsg = '';
 
   // PRIMARY METHOD: Resend API (HTTPS)
-  const RESEND_KEY = 're_V2SjcetA_LBCieiWXoe3wkEdspcuRSvMP';
+  const RESEND_KEY = 're_fPuWkXjD_2NCpPyNV47Xk56Jw5qjy1frE';
   try {
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
