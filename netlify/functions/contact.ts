@@ -24,7 +24,7 @@ export const handler: Handler = async (event) => {
     const host = process.env.SMTP_HOST || 'smtp.yandex.ru';
     const port = parseInt(process.env.SMTP_PORT || '465', 10);
     const user = process.env.SMTP_USER || 'sonicdeath7@yandex.ru';
-    const pass = process.env.SMTP_PASS || '655e270905f76b04a0c27586d4b64d95';
+    const pass = process.env.SMTP_PASS || '608afa43ea25130d5315f497b76a6cc3';
 
     const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8920101288:AAEQhC08geOKnAvWcnvwjtvb0x8dJxCgx3E';
     if (TELEGRAM_BOT_TOKEN) {
