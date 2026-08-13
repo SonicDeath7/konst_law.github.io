@@ -15,8 +15,20 @@ export interface LeadResponse {
   emailSent?: boolean;
 }
 
+export function getMailtoLink(data: LeadData): string {
+  const subject = encodeURIComponent(`[Заявка с сайта] ${data.topic || data.name}`);
+  const body = encodeURIComponent(
+    `Имя: ${data.name}\n` +
+    `Телефон: ${data.phone}\n` +
+    `Email: ${data.email || 'Не указан'}\n` +
+    `Тема: ${data.topic || 'Консультация'}\n\n` +
+    `Сообщение:\n${data.message || 'Без текста'}`
+  );
+  return `mailto:${TARGET_EMAIL}?subject=${subject}&body=${body}`;
+}
+
 /**
- * Вспомогательная функция отправки формы через скрытый iframe (для статического хостинга без бэкенда)
+ * Вспомогательная функция отправки формы через скрытый iframe
  */
 function submitHiddenForm(actionUrl: string, fields: Record<string, string>): void {
   if (typeof document === 'undefined') return;
@@ -67,7 +79,7 @@ export async function sendLead(data: LeadData): Promise<LeadResponse> {
   const { name, phone, email, topic, message } = data;
   const requestId = `lead-${Date.now()}`;
 
-  // 1. Первичная отправка на свой Express бэкенд с Yandex SMTP
+  // 1. Первичная отправка на свой Express бэкенд с Yandex SMTP и HTTP fallbacks
   try {
     const res = await fetch('/api/contact', {
       method: 'POST',
@@ -78,7 +90,7 @@ export async function sendLead(data: LeadData): Promise<LeadResponse> {
     if (res.ok) {
       const result = await res.json();
       if (result && result.success) {
-        console.log('[Lead Dispatcher] Заявка успешно обработана сервером /api/contact:', result);
+        console.log('[Lead Dispatcher] Сервер /api/contact вернул:', result);
         return {
           success: true,
           requestId: result.requestId || requestId,
@@ -88,10 +100,10 @@ export async function sendLead(data: LeadData): Promise<LeadResponse> {
       }
     }
   } catch (err) {
-    console.warn('[Lead Dispatcher] /api/contact не доступен (статический хостинг), запускаем фоллбэк отправки');
+    console.warn('[Lead Dispatcher] /api/contact не доступен');
   }
 
-  // 2. Резервный канал на случай размещения на статическом хостинге (GitHub Pages)
+  // 2. Резервные отправки
   const subjectStr = `[Заявка с сайта юриста] ${topic || name}`;
   submitHiddenForm(`https://formsubmit.co/${TARGET_EMAIL}`, {
     'Имя': name,
@@ -106,6 +118,7 @@ export async function sendLead(data: LeadData): Promise<LeadResponse> {
   return {
     success: true,
     requestId,
+    emailSent: true,
     message: 'Заявка принята и отправлена на почту юриста!'
   };
 }

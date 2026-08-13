@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { LAWYER_INFO } from '../data/legalData';
 import { Phone, Mail, Send, CheckCircle2, ShieldCheck, MapPin, Building, Clock, AlertCircle } from 'lucide-react';
-import { sendLead } from '../utils/sendLead';
+import { sendLead, getMailtoLink } from '../utils/sendLead';
 
 interface ContactSectionProps {
   initialTopic?: string;
@@ -174,22 +174,29 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialTopic = '
                 </p>
 
                 <div className="pt-2 border-t border-emerald-900/60 space-y-2">
-                  <p className="text-[11px] text-slate-400">Нужен срочный ответ прямо сейчас?</p>
+                  <p className="text-[11px] text-slate-400">Прямые каналы связи с юристом:</p>
                   <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <a
+                      href={getMailtoLink({ name, phone, email, topic, message })}
+                      className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-colors"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>Отправить на email</span>
+                    </a>
                     <a
                       href={LAWYER_INFO.whatsapp}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-colors"
+                      className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-colors"
                     >
-                      <span>Написать в WhatsApp</span>
+                      <span>WhatsApp</span>
                     </a>
                     <a
                       href={`tel:${LAWYER_INFO.phone}`}
-                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-colors"
+                      className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-colors"
                     >
-                      <Phone className="w-3.5 h-3.5" />
-                      <span>{LAWYER_INFO.phone}</span>
+                      <Phone className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Позвонить</span>
                     </a>
                   </div>
                 </div>

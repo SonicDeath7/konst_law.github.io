@@ -128,10 +128,70 @@ app.post('/api/contact', async (req, res) => {
       });
       newReq.emailSent = true;
       emailSent = true;
-      console.log(`[EMAIL SUCCESS] Письмо успешно отправлено на ${NOTIFICATION_EMAIL}. MessageId: ${info.messageId}`);
+      console.log(`[EMAIL SUCCESS] Письмо успешно отправлено через Yandex SMTP на ${NOTIFICATION_EMAIL}. MessageId: ${info.messageId}`);
     } catch (err: any) {
-      console.error(`[EMAIL ERROR] Ошибка отправки на ${NOTIFICATION_EMAIL}:`, err?.message || err);
-      emailErrorMsg = err?.message || String(err);
+      console.error(`[SMTP ERROR] Yandex SMTP failed:`, err?.message || err);
+      emailErrorMsg = `SMTP: ${err?.message || String(err)}`;
+    }
+  }
+
+  // Fallback 1: Web3Forms HTTP API (Server-side from Node.js)
+  if (!emailSent) {
+    try {
+      const w3res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          access_key: '18bb6465-b83f-4dbd-89f1-c3adfb3171e1',
+          name: newReq.name,
+          phone: newReq.phone,
+          email: newReq.email !== 'Не указан' ? newReq.email : undefined,
+          from_name: 'Сайт Юриста Мирошина',
+          subject: `[Заявка с сайта юриста] ${newReq.topic}`,
+          message: `Имя: ${newReq.name}\nТелефон: ${newReq.phone}\nEmail: ${newReq.email}\nТема: ${newReq.topic}\nСообщение: ${newReq.message}`
+        })
+      });
+      if (w3res.ok) {
+        const w3data: any = await w3res.json();
+        if (w3data.success) {
+          emailSent = true;
+          newReq.emailSent = true;
+          console.log(`[EMAIL SUCCESS] Письмо успешно отправлено через Web3Forms на ${NOTIFICATION_EMAIL}`);
+        } else {
+          console.warn('[Web3Forms ERROR]', w3data.message);
+        }
+      }
+    } catch (w3err: any) {
+      console.error('[Web3Forms FETCH ERROR]', w3err?.message || w3err);
+    }
+  }
+
+  // Fallback 2: FormSubmit HTTP API (Server-side from Node.js)
+  if (!emailSent) {
+    try {
+      const fsRes = await fetch(`https://formsubmit.co/ajax/${NOTIFICATION_EMAIL}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          'Имя': newReq.name,
+          'Телефон': newReq.phone,
+          'Email': newReq.email,
+          'Тема': newReq.topic,
+          'Сообщение': newReq.message,
+          '_subject': `[Заявка с сайта юриста] ${newReq.topic}`,
+          '_captcha': 'false'
+        })
+      });
+      if (fsRes.ok) {
+        const fsdata: any = await fsRes.json();
+        if (fsdata.success === 'true' || fsdata.success === true) {
+          emailSent = true;
+          newReq.emailSent = true;
+          console.log(`[EMAIL SUCCESS] Письмо успешно отправлено через FormSubmit на ${NOTIFICATION_EMAIL}`);
+        }
+      }
+    } catch (fserr: any) {
+      console.error('[FormSubmit FETCH ERROR]', fserr?.message || fserr);
     }
   }
 
