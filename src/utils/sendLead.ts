@@ -42,117 +42,21 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
 export async function sendLead(data: LeadData): Promise<LeadResponse> {
   const { name, phone, email, topic, message } = data;
   const fallbackId = `req-${Date.now()}`;
-  let isNetlifyRecorded = false;
+  let emailDelivered = false;
 
-  // Канал 1: Telegram Bot (с обходом блокировок в РФ через прокси-зеркала)
-  if (TELEGRAM_BOT_TOKEN) {
-    try {
-      const tgText = `🔔 <b>Новая заявка с сайта юриста!</b>\n\n` +
-        `👤 <b>Имя:</b> ${name}\n` +
-        `📞 <b>Телефон:</b> ${phone}\n` +
-        `📧 <b>Email:</b> ${email || 'Не указан'}\n` +
-        `📋 <b>Тема:</b> ${topic || 'Запись на консультацию'}\n` +
-        `💬 <b>Сообщение:</b> ${message || 'Без текста'}`;
-
-      const targetChatIds = new Set<string>();
-      if (TELEGRAM_CHAT_ID) {
-        targetChatIds.add(String(TELEGRAM_CHAT_ID));
-      }
-
-      // Список эндпоинтов для отправки в Telegram (прямой + прокси для пользователей из РФ без ВПН)
-      const telegramEndpoints = [
-        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-        `https://telegg.ru/orig/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-        `https://corsproxy.io/?https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`)}`
-      ];
-
-      // Автоматическое получение новых чатов (если было)
-      for (const ep of telegramEndpoints.slice(0, 2)) {
-        try {
-          const getUpdatesUrl = ep.replace('/sendMessage', '/getUpdates');
-          const updatesRes = await fetchWithTimeout(getUpdatesUrl, { method: 'GET' }, 2000);
-          if (updatesRes.ok) {
-            const updatesData = await updatesRes.json();
-            if (updatesData.ok && Array.isArray(updatesData.result)) {
-              for (const item of updatesData.result) {
-                const cid = item.message?.chat?.id || item.channel_post?.chat?.id || item.my_chat_member?.chat?.id;
-                if (cid) targetChatIds.add(String(cid));
-              }
-            }
-            break; // Если один из эндпоинтов ответил, дальше искать не нужно
-          }
-        } catch (e) {
-          // Игнорируем и пробуем следующий
-        }
-      }
-
-      if (targetChatIds.size > 0) {
-        let sentAny = false;
-        for (const cid of targetChatIds) {
-          const payload = JSON.stringify({
-            chat_id: cid,
-            parse_mode: 'HTML',
-            text: tgText
-          });
-
-          // Пробуем поочередно отправить через каждый эндпоинт пока один не сработает
-          for (const endpoint of telegramEndpoints) {
-            try {
-              const tgRes = await fetchWithTimeout(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: payload
-              }, 3000);
-
-              if (tgRes.ok) {
-                sentAny = true;
-                console.log(`[Lead Dispatcher] Telegram message delivered via: ${endpoint}`);
-                break; // Сообщение успешно доставлено!
-              }
-            } catch (err) {
-              console.warn(`[Lead Dispatcher] Telegram endpoint ${endpoint} failed, trying next proxy...`);
-            }
-          }
-        }
-
-        if (sentAny) {
-          // Запускаем резервную отправку на Email через Web3Forms в фоновом режиме (без ожидания)
-          if (WEB3FORMS_KEY) {
-            fetch('https://api.web3forms.com/submit', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-              body: JSON.stringify({
-                access_key: WEB3FORMS_KEY,
-                name, phone, from_name: 'Сайт Юриста',
-                subject: `[Заявка с сайта юриста] ${topic || name}`,
-                message: `Имя: ${name}\nТелефон: ${phone}\nEmail: ${email || 'Не указан'}\nТема: ${topic || 'Консультация'}\nСообщение: ${message || 'Без текста'}`
-              })
-            }).catch(() => {});
-          }
-
-          return { success: true, requestId: `tg-${Date.now()}` };
-        }
-      }
-    } catch (err) {
-      console.warn('[Lead Dispatcher] Telegram notice:', err);
-    }
-  }
-
-  // Канал 2: Web3Forms (Бесплатный direct-email без капчи)
+  // 📧 Канал 1 (ОСНОВНОЙ): Прямая отправка на Email (sonicdeath7@yandex.ru) через Web3Forms
   if (WEB3FORMS_KEY) {
     try {
       const w3Payload: Record<string, string> = {
         access_key: WEB3FORMS_KEY,
         name: name,
         phone: phone,
-        from_name: 'Сайт Юриста',
+        from_name: 'Сайт Юриста Мирошина',
         subject: `[Заявка с сайта юриста] ${topic || name}`,
         topic: topic || 'Запись на консультацию',
-        message: `Имя: ${name}\nТелефон: ${phone}\nEmail: ${email || 'Не указан'}\nТема: ${topic || 'Консультация'}\nСообщение: ${message || 'Без текста'}`
+        message: `Имя: ${name}\nТелефон: ${phone}\nEmail: ${email || 'Не указан'}\nТема: ${topic || 'Запись на консультацию'}\nСообщение: ${message || 'Без текста'}`
       };
 
-      // Передаем email только если он заполнен и валиден, чтобы Web3Forms не выдавал ошибку валидации
       if (email && email.includes('@')) {
         w3Payload.email = email;
       }
@@ -169,10 +73,8 @@ export async function sendLead(data: LeadData): Promise<LeadResponse> {
       if (w3res.ok) {
         const w3data = await w3res.json();
         if (w3data.success) {
-          console.log('[Lead Dispatcher] Web3Forms successfully sent lead!');
-          return { success: true, requestId: `w3-${Date.now()}` };
-        } else {
-          console.warn('[Lead Dispatcher] Web3Forms error:', w3data.message);
+          console.log('[Lead Dispatcher] Email delivered to Yandex via Web3Forms!');
+          emailDelivered = true;
         }
       }
     } catch (err) {
@@ -180,99 +82,93 @@ export async function sendLead(data: LeadData): Promise<LeadResponse> {
     }
   }
 
-  // Канал 3: Express Node server or Serverless Function (/api/contact)
+  // 📧 Канал 2 (Резервный Email): FormSubmit.co напрямую на sonicdeath7@yandex.ru
+  if (!emailDelivered) {
+    try {
+      const fsRes = await fetch(`https://formsubmit.co/ajax/${TARGET_EMAIL}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          'Имя': name,
+          'Телефон': phone,
+          'Email клиента': email || 'Не указан',
+          'Тема': topic || 'Запись на юридическую консультацию',
+          'Сообщение': message || 'Без текста сообщения',
+          '_subject': `[Новая заявка с сайта юриста] ${topic || name}`,
+          '_captcha': 'false',
+          '_template': 'table'
+        })
+      });
+
+      if (fsRes.ok) {
+        const fsData = await fsRes.json();
+        if (fsData.success === 'true' || fsData.success === true) {
+          console.log('[Lead Dispatcher] Email delivered to Yandex via FormSubmit!');
+          emailDelivered = true;
+        }
+      }
+    } catch (err) {
+      console.warn('[Lead Dispatcher] FormSubmit notice:', err);
+    }
+  }
+
+  // 📱 Канал Telegram (Фоновый, не блокирует клиента при отсутствии VPN в РФ)
+  if (TELEGRAM_BOT_TOKEN) {
+    (async () => {
+      try {
+        const tgText = `🔔 <b>Новая заявка с сайта юриста!</b>\n\n` +
+          `👤 <b>Имя:</b> ${name}\n` +
+          `📞 <b>Телефон:</b> ${phone}\n` +
+          `📧 <b>Email:</b> ${email || 'Не указан'}\n` +
+          `📋 <b>Тема:</b> ${topic || 'Запись на консультацию'}\n` +
+          `💬 <b>Сообщение:</b> ${message || 'Без текста'}`;
+
+        const targetChatIds = new Set<string>();
+        if (TELEGRAM_CHAT_ID) {
+          targetChatIds.add(String(TELEGRAM_CHAT_ID));
+        }
+
+        const telegramEndpoints = [
+          `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+          `https://telegg.ru/orig/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+          `https://corsproxy.io/?https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`
+        ];
+
+        for (const cid of targetChatIds) {
+          for (const endpoint of telegramEndpoints) {
+            try {
+              const res = await fetchWithTimeout(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: cid, parse_mode: 'HTML', text: tgText })
+              }, 2000);
+              if (res.ok) break;
+            } catch (e) {
+              // Игнорируем блокировки Telegram в РФ
+            }
+          }
+        }
+      } catch (err) {
+        // Фоновая отправка в TG
+      }
+    })();
+  }
+
+  // Если попытка через бэкенд Express /api/contact доступна (для локального сервера)
   try {
-    const res = await fetch('/api/contact', {
+    fetch('/api/contact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, phone, email, topic, message })
-    });
-
-    const ct = res.headers.get('content-type') || '';
-    if (res.ok && ct.includes('application/json')) {
-      const result = await res.json();
-      if (result && result.success) {
-        return { success: true, requestId: result.requestId || fallbackId };
-      }
-    }
-  } catch (err) {
-    console.log('[Lead Dispatcher] Backend /api/contact not active');
-  }
-
-  try {
-    const res = await fetch('/.netlify/functions/contact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, email, topic, message })
-    });
-
-    const ct = res.headers.get('content-type') || '';
-    if (res.ok && ct.includes('application/json')) {
-      const result = await res.json();
-      if (result && result.success) {
-        return { success: true, requestId: result.requestId || fallbackId };
-      }
-    }
-  } catch (err) {
-    console.log('[Lead Dispatcher] Netlify function not active');
-  }
-
-  // Канал 4: Direct Email via FormSubmit.co AJAX API
-  try {
-    const response = await fetch(`https://formsubmit.co/ajax/${TARGET_EMAIL}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        'Имя': name,
-        'Телефон': phone,
-        'Email клиента': email || 'Не указан',
-        'Тема': topic || 'Запись на юридическую консультацию',
-        'Сообщение': message || 'Без текста сообщения',
-        '_subject': `[Новая заявка с сайта юриста] ${topic || name}`,
-        '_captcha': 'false',
-        '_template': 'table'
-      })
-    });
-
-    if (response.ok) {
-      const resData = await response.json();
-      if (resData.success === 'true' || resData.success === true) {
-        return { success: true, requestId: `fs-${Date.now()}` };
-      }
-    }
-  } catch (err) {
-    console.warn('[Lead Dispatcher] FormSubmit channel notice:', err);
-  }
-
-  // Канал 5: Netlify Forms transport (Active on Netlify hosting)
-  try {
-    const formData = new URLSearchParams();
-    formData.append('form-name', 'consultation');
-    formData.append('name', name);
-    formData.append('phone', phone);
-    formData.append('email', email || 'Не указан');
-    formData.append('topic', topic || 'Запись на консультацию');
-    formData.append('message', message || '');
-
-    const netlifyRes = await fetch('/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: formData.toString()
-    });
-
-    if (netlifyRes.ok || netlifyRes.status === 200 || netlifyRes.status === 302) {
-      isNetlifyRecorded = true;
-    }
-  } catch (err) {
-    console.warn('[Lead Dispatcher] Netlify Forms notice:', err);
-  }
+    }).catch(() => {});
+  } catch (err) {}
 
   return {
     success: true,
-    requestId: isNetlifyRecorded ? `net-${Date.now()}` : fallbackId
+    requestId: emailDelivered ? `email-${Date.now()}` : fallbackId
   };
 }
 
