@@ -17,7 +17,7 @@ export const AboutBio: React.FC = () => {
             Мирошин Константин Алексеевич
           </h2>
           <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-            Практикующий юрист с высшим профильным юридическим образованием и 14-летним опытом судебного представительства и правового сопровождения бизнеса.
+            Практикующий юрист с высшим профильным юридическим образованием и 20-летним опытом судебного представительства и правового сопровождения бизнеса.
           </p>
         </div>
 
@@ -51,7 +51,7 @@ export const AboutBio: React.FC = () => {
               </div>
               <div>
                 <span className="text-slate-400 block font-medium">Юридический стаж:</span>
-                <span className="text-amber-400 font-semibold">С 2012 года (14+ лет)</span>
+                <span className="text-amber-400 font-semibold">{LAWYER_INFO.experienceYears}+ лет</span>
               </div>
               <div>
                 <span className="text-slate-400 block font-medium">География работы:</span>

@@ -33,10 +33,6 @@ export default function App() {
       <main>
         <Hero
           onOpenConsultationModal={() => handleOpenConsultation()}
-          onScrollToContacts={() => {
-            const el = document.getElementById('contacts');
-            el?.scrollIntoView({ behavior: 'smooth' });
-          }}
         />
 
         <AboutBio />

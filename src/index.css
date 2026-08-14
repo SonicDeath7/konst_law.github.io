@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+@layer base {
+  button,
+  input,
+  optgroup,
+  select,
+  textarea {
+    font-family: inherit;
+  }
+}

@@ -35,7 +35,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultationModal }) => {
           <div className="flex items-center space-x-4">
             <span className="flex items-center text-amber-400 font-medium">
               <Shield className="w-3.5 h-3.5 mr-1 text-amber-400" />
-              ИП Мирошин К.А. • Юридическая практика
+              ИП Мирошин К.А.
             </span>
             <span className="hidden md:inline-block text-slate-500">|</span>
             <span className="hidden md:inline-block text-slate-300">
@@ -83,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultationModal }) => {
                   Мирошин К.А.
                 </span>
                 <span className="text-[10px] tracking-wider uppercase text-amber-400 font-semibold">
-                  Юрист & Практик
+                  Официальный сайт
                 </span>
               </div>
             </a>

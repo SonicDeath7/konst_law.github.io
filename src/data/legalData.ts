@@ -5,7 +5,7 @@ export const LAWYER_INFO = {
   shortName: 'Мирошин К.А.',
   status: 'Индивидуальный предприниматель (ИП)',
   title: 'Юрист по арбитражным и гражданским делам • Защита бизнеса',
-  experienceYears: 14,
+  experienceYears: 20,
   phone: '+7 920 275 7199',
   phoneFormatted: '+7 (920) 275-71-99',
   email: 'konstmi@yandex.ru',

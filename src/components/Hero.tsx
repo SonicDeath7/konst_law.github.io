@@ -1,15 +1,14 @@
 import React from 'react';
 import { LAWYER_INFO } from '../data/legalData';
-import { ArrowUpRight, ShieldCheck, Scale, Award, CheckCircle2, PhoneCall, FileText } from 'lucide-react';
+import { ArrowUpRight, ShieldCheck, Scale, Award, CheckCircle2, PhoneCall } from 'lucide-react';
 
 interface HeroProps {
   onOpenConsultationModal: () => void;
-  onScrollToContacts: () => void;
+  onScrollToContacts?: () => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({
   onOpenConsultationModal,
-  onScrollToContacts
 }) => {
   return (
     <section className="relative pt-6 pb-16 sm:pb-24 px-4 sm:px-8 overflow-hidden">
@@ -22,23 +21,12 @@ export const Hero: React.FC<HeroProps> = ({
           
           {/* Left Column: Text & Content */}
           <div className="lg:col-span-7 space-y-6 text-left">
-            {/* Trust Pill Badge */}
-            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-slate-800/90 border border-slate-700 text-xs font-medium text-slate-300 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <span className="text-amber-400 font-semibold uppercase tracking-wider text-[11px]">
-                ИП МИРОШИН К.А.
-              </span>
-              <span className="text-slate-500">•</span>
-              <span className="text-slate-300">Юридический стаж {LAWYER_INFO.experienceYears}+ лет</span>
-            </div>
-
             {/* Main Headline */}
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12] font-serif">
-              Ваш персональный{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-500">
-                партнёр
-              </span>{' '}
-              в правовых и арбитражных делах
+              Ваши интересы —{' '}
+              <span className="text-amber-400">
+                под надежной защитой
+              </span>
             </h1>
 
             {/* Subtitle */}
@@ -59,22 +47,14 @@ export const Hero: React.FC<HeroProps> = ({
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            {/* Action Button */}
+            <div className="pt-2 flex flex-wrap items-center">
               <button
                 onClick={onOpenConsultationModal}
-                className="px-6 py-4 rounded-xl text-sm font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:brightness-110 shadow-xl shadow-amber-500/25 transition-all flex items-center justify-center space-x-2 group cursor-pointer"
+                className="px-6 py-3.5 text-sm sm:text-base font-semibold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:brightness-110 rounded-xl shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center space-x-1.5 group cursor-pointer w-full sm:w-auto"
               >
-                <span>Получить бесплатную консультацию</span>
-                <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </button>
-
-              <button
-                onClick={onScrollToContacts}
-                className="px-5 py-4 rounded-xl text-sm font-semibold text-slate-200 bg-slate-800/90 border border-slate-700/80 hover:bg-slate-800 hover:border-slate-600 transition-all flex items-center justify-center space-x-2 cursor-pointer"
-              >
-                <FileText className="w-4 h-4 text-amber-400" />
-                <span>Задать вопрос / Контакты</span>
+                <span>Оставить заявку</span>
+                <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0" />
               </button>
             </div>
 
@@ -178,7 +158,7 @@ export const Hero: React.FC<HeroProps> = ({
         <div className="mt-12 sm:mt-16 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="bg-[#131d33]/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 hover:border-amber-500/40 transition-all">
             <span className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-amber-500 font-serif">
-              14+
+              20+
             </span>
             <p className="text-xs sm:text-sm font-semibold text-slate-200 mt-1">Лет юридической практики</p>
             <p className="text-[11px] text-slate-400 mt-0.5">Опыт в арбитраже и гражданских делах</p>

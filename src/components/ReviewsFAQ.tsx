@@ -84,7 +84,7 @@ export const ReviewsFAQ: React.FC = () => {
                     onClick={() => toggleFaq(item.id)}
                     className="w-full p-5 text-left flex items-center justify-between space-x-4 hover:bg-slate-800/50 transition-colors cursor-pointer"
                   >
-                    <span className="text-sm font-bold text-white font-serif">
+                    <span className="text-sm font-bold text-white">
                       {item.question}
                     </span>
                     <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-amber-400 shrink-0">
