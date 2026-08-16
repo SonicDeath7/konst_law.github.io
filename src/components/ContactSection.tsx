@@ -111,7 +111,7 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
                 <p><span className="text-slate-400">Наименование:</span> ИП Мирошин Константин Алексеевич</p>
                 <p><span className="text-slate-400">ОГРНИП:</span> {LAWYER_INFO.ogrnip}</p>
                 <p><span className="text-slate-400">ИНН:</span> {LAWYER_INFO.inn}</p>
-                <p><span className="text-slate-400">Формат работы:</span> Очно (г. Тула / г. Москва) и дистанционно (ЭДО) по РФ</p>
+                <p><span className="text-slate-400">Город:</span> г. Тула</p>
               </div>
             </div>
 
@@ -129,15 +129,9 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
           <div className="lg:col-span-7 bg-[#111c33] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4">
             
             <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[11px] font-semibold border border-amber-500/20">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>ЯНДЕКС.ФОРМЫ</span>
-                </div>
-                <h3 className="text-xl font-bold text-white font-serif">
-                  Онлайн-заявка на консультацию
-                </h3>
-              </div>
+              <h3 className="text-xl font-bold text-white font-serif">
+                Онлайн-заявка на консультацию
+              </h3>
 
               <a
                 href="https://forms.yandex.ru/u/6a7e3a1302848f6ab9df895b/"

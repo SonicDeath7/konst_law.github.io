@@ -11,10 +11,10 @@ export const LAWYER_INFO = {
   email: 'konstmi@yandex.ru',
   telegram: 'https://t.me/+79202757199',
   whatsapp: 'https://wa.me/79202757199',
-  location: 'г. Тула / Москва / Вся Россия (Дистанционно и очно)',
+  location: 'г. Тула',
   photoUrl: 'images/photo.jpg',
-  inn: '710000000000', // ИНН
-  ogrnip: '321710000012345', // ОГРНИП
+  inn: '710402080724', // ИНН
+  ogrnip: '309715431400149', // ОГРНИП
   principles: [
     {
       title: 'Честная оценка перспектив',

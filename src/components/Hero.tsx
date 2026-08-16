@@ -51,7 +51,7 @@ export const Hero: React.FC<HeroProps> = ({
             <div className="pt-2 flex flex-wrap items-center">
               <button
                 onClick={onOpenConsultationModal}
-                className="px-6 py-3.5 text-sm sm:text-base font-semibold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:brightness-110 rounded-xl shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center space-x-1.5 group cursor-pointer w-full sm:w-auto"
+                className="px-6 py-3.5 text-sm sm:text-base font-semibold text-slate-950 btn-amber-glow rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-1.5 group cursor-pointer w-full sm:w-auto"
               >
                 <span>Оставить заявку</span>
                 <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0" />
@@ -59,26 +59,28 @@ export const Hero: React.FC<HeroProps> = ({
             </div>
 
             {/* Direct Contact Info Box */}
-            <div className="pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <span className="text-xs text-slate-400 block font-medium">Прямая связь с юристом:</span>
-                <a
-                  href={`tel:${LAWYER_INFO.phone}`}
-                  className="text-lg font-bold text-amber-400 hover:text-amber-300 transition-colors flex items-center space-x-1"
-                >
-                  <PhoneCall className="w-4 h-4 mr-1 text-amber-400" />
-                  <span>{LAWYER_INFO.phoneFormatted}</span>
-                </a>
-              </div>
+            <div className="pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4 sm:gap-6">
+              <div className="flex flex-wrap items-center gap-6 sm:gap-8">
+                <div>
+                  <span className="text-xs text-slate-400 block font-medium">Прямая связь с юристом:</span>
+                  <a
+                    href={`tel:${LAWYER_INFO.phone}`}
+                    className="text-lg font-bold text-amber-400 hover:text-amber-300 transition-colors flex items-center space-x-1"
+                  >
+                    <PhoneCall className="w-4 h-4 mr-1 text-amber-400" />
+                    <span>{LAWYER_INFO.phoneFormatted}</span>
+                  </a>
+                </div>
 
-              <div>
-                <span className="text-xs text-slate-400 block font-medium">E-mail:</span>
-                <a
-                  href={`mailto:${LAWYER_INFO.email}`}
-                  className="text-sm font-semibold text-slate-200 hover:text-amber-400 transition-colors"
-                >
-                  {LAWYER_INFO.email}
-                </a>
+                <div>
+                  <span className="text-xs text-slate-400 block font-medium">E-mail:</span>
+                  <a
+                    href={`mailto:${LAWYER_INFO.email}`}
+                    className="text-sm font-semibold text-slate-200 hover:text-amber-400 transition-colors"
+                  >
+                    {LAWYER_INFO.email}
+                  </a>
+                </div>
               </div>
 
               <div className="flex items-center space-x-2">

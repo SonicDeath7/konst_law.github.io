@@ -95,7 +95,7 @@ export const ProcessSection: React.FC<ProcessSectionProps> = ({ onOpenConsultati
 
           <button
             onClick={onOpenConsultationModal}
-            className="px-6 py-3 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl shadow-lg transition-all flex items-center space-x-2 shrink-0 cursor-pointer"
+            className="px-6 py-3 text-xs font-bold text-slate-950 btn-amber-glow rounded-xl shadow-lg flex items-center space-x-2 shrink-0 cursor-pointer"
           >
             <span>Начать работу с юристом</span>
             <ArrowRight className="w-4 h-4" />

@@ -39,7 +39,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultationModal }) => {
             </span>
             <span className="hidden md:inline-block text-slate-500">|</span>
             <span className="hidden md:inline-block text-slate-300">
-              г. Тула • Москва • Дистанционно по всей РФ
+              г. Тула
             </span>
           </div>
           <div className="flex items-center space-x-4">
@@ -105,7 +105,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultationModal }) => {
             <div className="hidden sm:flex items-center space-x-2">
               <button
                 onClick={onOpenConsultationModal}
-                className="px-4 py-2 text-xs font-semibold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:brightness-110 rounded-xl shadow-lg shadow-amber-500/20 transition-all flex items-center space-x-1 group cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold text-slate-950 btn-amber-glow rounded-xl shadow-lg shadow-amber-500/20 flex items-center space-x-1 group cursor-pointer"
               >
                 <span>Записаться</span>
                 <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -116,7 +116,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultationModal }) => {
             <div className="flex sm:hidden items-center space-x-2">
               <button
                 onClick={onOpenConsultationModal}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-950 bg-amber-400 rounded-lg font-medium"
+                className="px-3 py-1.5 text-xs font-semibold text-slate-950 btn-amber-glow rounded-lg font-medium"
               >
                 Консультация
               </button>

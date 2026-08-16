@@ -18,7 +18,7 @@ export const ReviewsFAQ: React.FC = () => {
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs font-semibold text-amber-400">
               <MessageSquareQuote className="w-3.5 h-3.5" />
-              <span>ОТЗЫВЫ ДОВЕРИТЕЛЕЙ</span>
+              <span>ОТЗЫВЫ КЛИЕНТОВ</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight font-serif">
               Что говорят клиенты о работе юриста

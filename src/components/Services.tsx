@@ -170,7 +170,7 @@ export const Services: React.FC<ServicesProps> = ({ onSelectServiceForConsultati
                   setSelectedService(null);
                   onSelectServiceForConsultation(title);
                 }}
-                className="px-6 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl shadow-lg transition-all cursor-pointer"
+                className="px-6 py-2.5 text-xs font-bold text-slate-950 btn-amber-glow rounded-xl shadow-lg cursor-pointer"
               >
                 Заказать консультацию
               </button>

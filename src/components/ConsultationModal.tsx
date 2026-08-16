@@ -32,15 +32,9 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
         
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 pr-10 shrink-0">
-          <div className="space-y-0.5">
-            <div className="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] sm:text-[11px] font-semibold border border-amber-500/20">
-              <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span>ЯНДЕКС.ФОРМЫ • ОФИЦИАЛЬНАЯ ЗАПИСЬ</span>
-            </div>
-            <h3 className="text-base sm:text-xl font-bold text-white font-serif leading-snug">
-              {defaultTopic || 'Запись на консультацию юриста'}
-            </h3>
-          </div>
+          <h3 className="text-base sm:text-xl font-bold text-white font-serif leading-snug">
+            {defaultTopic || 'Запись на консультацию юриста'}
+          </h3>
         </div>
 
         {/* Close button */}
