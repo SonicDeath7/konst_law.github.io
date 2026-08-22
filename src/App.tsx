@@ -9,6 +9,7 @@ import { ReviewsFAQ } from './components/ReviewsFAQ';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { ConsultationModal } from './components/ConsultationModal';
+import { AiChatWidget } from './components/AiChatWidget';
 
 export default function App() {
   const [isConsultationOpen, setIsConsultationOpen] = useState(false);
@@ -65,6 +66,11 @@ export default function App() {
         onClose={() => setIsConsultationOpen(false)}
         defaultTopic={modalTopic}
         initialMessage={modalMessage}
+      />
+
+      {/* AI Legal Assistant Chat Widget */}
+      <AiChatWidget
+        onOpenConsultation={handleOpenConsultation}
       />
 
     </div>

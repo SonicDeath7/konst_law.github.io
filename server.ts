@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import nodemailer from 'nodemailer';
+import { GoogleGenAI } from '@google/genai';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -118,6 +119,69 @@ const contactRequests: ContactRequest[] = [
 // API Endpoints
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', service: 'Юрист Мирошин К.А. API', targetEmail: NOTIFICATION_EMAIL });
+});
+
+// AI Legal Assistant API Endpoint
+app.post('/api/chat', async (req, res) => {
+  const { query, history } = req.body;
+
+  if (!query || typeof query !== 'string') {
+    return res.status(400).json({ error: 'Параметр query обязателен.' });
+  }
+
+  const systemInstruction = `Вы — официальный виртуальный AI-помощник на сайте юриста Мирошина Константина Алексеевича.
+Ваша задача — давать вежливые, четкие, структурированные и грамотные первичные разъяснения по праву РФ (ГК РФ, ЗоЗПП РФ, АПК РФ, ГПК РФ, ТК РФ, ЖК РФ).
+
+КРИТИЧЕСКИЕ ПРАВИЛА:
+1. Пишите емко, разбивая ответ на пункты и шаги (1, 2, 3).
+2. Обязательный дисклеймер: в конце ответа обязательно напомните: «Ответ сформирован ИИ и носит исключительно ознакомительный характер. Не является официальной юридической консультацией.»
+3. Предупреждение о ПДн: если пользователь пытается передать паспортные данные или номера документов, напомните не вводить персональные данные в чат (152-ФЗ).
+4. Если ситуация сложная, требует анализа договоров, судебного представительства или экспертизы — порекомендуйте обратиться к юристу Мирошину Константину Алексеевичу через кнопку «Записаться на консультацию» или по телефону +7 (910) 700-08-01.`;
+
+  // Google Gemini API with multi-model fallback (gemini-2.5-flash -> gemini-2.0-flash -> gemini-1.5-flash)
+  const geminiModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const formattedHistory = Array.isArray(history)
+        ? history.map((h: any) => ({
+            role: h.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: String(h.content || '') }]
+          }))
+        : [];
+
+      for (const modelName of geminiModels) {
+        try {
+          const response = await ai.models.generateContent({
+            model: modelName,
+            contents: [
+              ...formattedHistory,
+              { role: 'user', parts: [{ text: query }] }
+            ],
+            config: {
+              systemInstruction,
+              temperature: 0.3
+            }
+          });
+
+          if (response.text) {
+            return res.json({ answer: response.text, source: 'gemini' });
+          }
+        } catch (geminiErr: any) {
+          console.warn(`[Gemini API ${modelName} Attempt]`, geminiErr?.message || geminiErr);
+          // Continue to next fallback model
+        }
+      }
+    } catch (clientErr: any) {
+      console.warn('[Gemini Client Init]', clientErr?.message || clientErr);
+    }
+  }
+
+  // 3. Fallback response
+  res.json({
+    answer: `### Первичные правовые рекомендации\n\nПо вашему вопросу: «${query}»\n\n1. **Сбор доказательств:** Соберите и зафиксируйте все подтверждающие документы (договоры, квитанции, переписку, акты).\n2. **Досудебный порядок:** В большинстве споров по законодательству РФ первоочередным шагом является направление мотивированной претензии.\n3. **Индивидуальный анализ:** Для подробного правового заключения и подготовки процессуальных документов рекомендуем обратиться к юристу Мирошину К.А. по тел. +7 (910) 700-08-01.\n\n*Ответ сформирован ИИ и носит исключительно ознакомительный характер.*`,
+    source: 'knowledge_base'
+  });
 });
 
 app.post('/api/contact', async (req, res) => {
